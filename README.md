@@ -1,1 +1,1 @@
-Repo contains my progress following [learnopengl.com](learnopengl.com) OpenGL tutorials
+Repo contains my progress following [learnopengl.com](https://www.learnopengl.com) OpenGL tutorials
