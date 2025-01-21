@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <cmath>
 
 /*function declarations*/
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -21,10 +22,10 @@ const char *vertexShaderSource = "#version 330 core\n"
 /*fragment shader*/
 const char *fragmentShaderSource = "#version 330 core\n"
                                   "out vec4 FragColor;\n"
-                                  "in vec4 vertexColor;\n"
+                                  "uniform vec4 ourColor;\n"
                                   "void main()\n"
                                   "{\n"
-                                  "   FragColor = vertexColor;\n"
+                                  "   FragColor = ourColor;\n"
                                   "}\0";
 /*****************/
 
@@ -128,11 +129,16 @@ int main()
         /********/
 
         /*rendering*/
-        glClearColor(0.0f, 0.2f, 1.0f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         // draws triangle
         glUseProgram(shaderProgram);
+        
+        float timeValue = glfwGetTime();
+        float redValue = (sin(timeValue) / 2.0f) + 0.5f;
+        int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+        glUniform4f(vertexColorLocation, redValue, 0.0f, 0.0f, 1.0f);
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
