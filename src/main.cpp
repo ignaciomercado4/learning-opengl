@@ -12,8 +12,6 @@ void processInput(GLFWwindow *window);
 
 
 float texture2Visibility = 0.0f;
-float xOffset = 0.0f;
-float yOffset = 0.0f;
 
 int main()
 {
@@ -147,8 +145,6 @@ int main()
         ourShader.use(); 
         ourShader.setInt("texture1", 0);
         ourShader.setInt("texture2", 1);
-        ourShader.setFloat("xOffset", xOffset);
-        ourShader.setFloat("yOffset", yOffset);
         ourShader.setFloat("texture2Visibility", texture2Visibility);
 
 
@@ -192,39 +188,14 @@ void processInput(GLFWwindow *window)
         glfwSetWindowShouldClose(window, true);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-    {
-        xOffset = xOffset + 0.01f;
-        if (xOffset >= 1.0f) xOffset = 1.0f;
-    }
-    
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-    {
-        xOffset = xOffset - 0.01f;
-        if (xOffset <= -1.0f) xOffset = -1.0f;
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+        texture2Visibility = texture2Visibility + 0.01f;
+        if (texture2Visibility >= 1.0f) texture2Visibility = 1.0f;
     }
 
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-    {
-        yOffset = yOffset + 0.01f;
-        if (yOffset >= 0.5f) yOffset = 0.5f;
-    }
-    
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
     {
-        yOffset = yOffset - 0.01f;
-        if (yOffset <= -0.5f) yOffset = -0.5f;
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-    {
-        xOffset = xOffset + 0.01f;
-        if (xOffset >= 0.5f) xOffset = 0.5f;
-    }
-    
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-    {
-        xOffset = xOffset - 0.01f;
-        if (xOffset <= -0.5f) xOffset = -0.5f;
+        texture2Visibility = texture2Visibility - 0.01f;
+        if (texture2Visibility <= 0.0f) texture2Visibility = 0.0f;
     }
 }
