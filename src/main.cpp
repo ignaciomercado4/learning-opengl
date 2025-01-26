@@ -148,18 +148,28 @@ int main()
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
 
+        // render boxes
+        double  timeValue = glfwGetTime();
+        float scaleValue = static_cast<float>(sin(timeValue) / 2.0 + 0.5);
+        glm::vec3 scaleValueVec = glm::vec3(scaleValue, scaleValue, scaleValue);
+
         // transf
-        // std::cout << glfwGetTime() << std::endl; 
-        glm::mat4 trans = glm::mat4(1.0f);
-        // clock
-        // trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-        // trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+        glm::mat4 trans1 = glm::mat4(1.0f);
         
-        // fidget spinner
-        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        trans1 = glm::translate(trans1, glm::vec3(0.5f, -0.5f, 0.0f));
+        trans1 = glm::scale(trans1, scaleValueVec);  
         unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans1));
+
+        
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        glm::mat4 trans2 = glm::mat4(1.0f);
+        
+        trans2 = glm::translate(trans2, glm::vec3(-0.5f, 0.5f, 0.0f));
+        trans2 = glm::scale(trans2, scaleValueVec);  
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans2));
 
         ourShader.use(); 
         ourShader.setInt("texture1", 0);
