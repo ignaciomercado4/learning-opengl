@@ -1,17 +1,17 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "Shader.hpp"
 #include <stb_image.h>
 #include <iostream>
-#include <cmath>
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
+#include "Shader.hpp"
+
 
 /*function declarations*/
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 /***********************/
-
-
-float texture2Visibility = 0.0f;
 
 int main()
 {
@@ -132,7 +132,6 @@ int main()
     }
     stbi_image_free(data);
 
-
     while (!glfwWindowShouldClose(window))
     {
         /*inputs*/
@@ -142,18 +141,31 @@ int main()
         /*rendering*/
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        ourShader.use(); 
-        ourShader.setInt("texture1", 0);
-        ourShader.setInt("texture2", 1);
-        ourShader.setFloat("texture2Visibility", texture2Visibility);
 
-
-        // bind Texture
+        // bind textures
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
 
+        // transf
+        // std::cout << glfwGetTime() << std::endl; 
+        glm::mat4 trans = glm::mat4(1.0f);
+        // clock
+        // trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        // trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+        
+        // fidget spinner
+        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
+        ourShader.use(); 
+        ourShader.setInt("texture1", 0);
+        ourShader.setInt("texture2", 1);
+
+        // render box
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -181,21 +193,5 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, true);
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    {
-        glfwSetWindowShouldClose(window, true);
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-        texture2Visibility = texture2Visibility + 0.01f;
-        if (texture2Visibility >= 1.0f) texture2Visibility = 1.0f;
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-    {
-        texture2Visibility = texture2Visibility - 0.01f;
-        if (texture2Visibility <= 0.0f) texture2Visibility = 0.0f;
     }
 }
