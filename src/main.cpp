@@ -1,3 +1,6 @@
+/*primer main.cpp*/
+
+#define GLM_FORCE_CTOR_INIT
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
@@ -27,12 +30,12 @@ float pitch =  0.0f;
 float lastX =  (float)SCREEN_WIDTH / 2.0;
 float lastY =  (float)SCREEN_HEIGHT / 2.0;
 float fov   =  45.0f;
-
 float deltaTime = 0.0f;	
 float lastFrame = 0.0f;
 
-glm::vec3 objectColor = glm::vec3(1.0f, 0.0f, 0.0f);
-glm::vec3 lightColor = glm::vec3(0.0f, 0.0f, 0.0f);
+glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+glm::vec3 lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
+glm::vec3 objectColor = glm::vec3(1.0f, 1.0f, 0.0f);
 /***********************/
 
 int main()
@@ -42,7 +45,7 @@ int main()
     {
         std::cerr << "Failed to start GLFW" << std::endl;
 
-        return -1;
+        return 1;
     }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -55,7 +58,7 @@ int main()
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
 
-        return -1;
+        return 1;
     }
 
     glfwMakeContextCurrent(window);
@@ -71,7 +74,7 @@ int main()
         glfwDestroyWindow(window);
         glfwTerminate();
 
-        return -1;
+        return 1;
     }
     /*******************/
 
@@ -84,47 +87,47 @@ int main()
     /*********/
 
     float vertices[] = {
-        -0.5f, -0.5f, -0.5f, 
-         0.5f, -0.5f, -0.5f,  
-         0.5f,  0.5f, -0.5f,  
-         0.5f,  0.5f, -0.5f,  
-        -0.5f,  0.5f, -0.5f, 
-        -0.5f, -0.5f, -0.5f, 
-
-        -0.5f, -0.5f,  0.5f, 
-         0.5f, -0.5f,  0.5f,  
-         0.5f,  0.5f,  0.5f,  
-         0.5f,  0.5f,  0.5f,  
-        -0.5f,  0.5f,  0.5f, 
-        -0.5f, -0.5f,  0.5f, 
-
-        -0.5f,  0.5f,  0.5f, 
-        -0.5f,  0.5f, -0.5f, 
-        -0.5f, -0.5f, -0.5f, 
-        -0.5f, -0.5f, -0.5f, 
-        -0.5f, -0.5f,  0.5f, 
-        -0.5f,  0.5f,  0.5f, 
-
-         0.5f,  0.5f,  0.5f,  
-         0.5f,  0.5f, -0.5f,  
-         0.5f, -0.5f, -0.5f,  
-         0.5f, -0.5f, -0.5f,  
-         0.5f, -0.5f,  0.5f,  
-         0.5f,  0.5f,  0.5f,  
-
-        -0.5f, -0.5f, -0.5f, 
-         0.5f, -0.5f, -0.5f,  
-         0.5f, -0.5f,  0.5f,  
-         0.5f, -0.5f,  0.5f,  
-        -0.5f, -0.5f,  0.5f, 
-        -0.5f, -0.5f, -0.5f, 
-
-        -0.5f,  0.5f, -0.5f, 
-         0.5f,  0.5f, -0.5f,  
-         0.5f,  0.5f,  0.5f,  
-         0.5f,  0.5f,  0.5f,  
-        -0.5f,  0.5f,  0.5f, 
-        -0.5f,  0.5f, -0.5f,
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+       -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+       -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+   
+       -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+       -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+       -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+   
+       -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+       -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+       -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+       -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+       -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+       -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+   
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+   
+       -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+       -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+       -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+   
+       -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+       -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+       -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
     };
 
     std::vector<glm::vec3> cubePositions = {
@@ -141,18 +144,19 @@ int main()
     glBindVertexArray(cubeVAO);
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    // normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
-    // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
     unsigned int lightCubeVAO;
     glGenVertexArrays(1, &lightCubeVAO);
     glBindVertexArray(lightCubeVAO);
 
-    // we only need to bind to the VBO (to link it with glVertexAttribPointer), no need to fill it; the VBO's data already contains all we need (it's already bound, but we do it again for educational purposes)
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
     while (!glfwWindowShouldClose(window))
@@ -168,13 +172,14 @@ int main()
 
         // render
         glEnable(GL_DEPTH_TEST);
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.0f, 0.f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // activate shader
         cubeShader.use();
         cubeShader.setVec3("objectColor", objectColor);
         cubeShader.setVec3("lightColor", lightColor);
+        cubeShader.setVec3("lightPos", lightPos);
 
         // create transformations
         glm::mat4 view = glm::mat4(1.0f);
@@ -197,11 +202,11 @@ int main()
         
         //render light
         lightShader.use();
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, lightPos);
+        model = glm::scale(model, glm::vec3(0.2f));
         lightShader.setMat4("projection", projection);
         lightShader.setMat4("view", view);
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(1.0f, 1.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(0.2f));
         lightShader.setMat4("model", model);
         glBindVertexArray(lightCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
