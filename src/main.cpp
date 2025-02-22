@@ -15,11 +15,6 @@
 const int SCREEN_WIDTH = 1440;
 const int SCREEN_HEIGHT = 720;
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow *window);
-
 glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -34,8 +29,17 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-glm::vec3 lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
-glm::vec3 objectColor = glm::vec3(1.0f, 1.0f, 0.0f);
+glm::vec3 lightPos = glm::vec3(1.2f, 0.0f, 2.0f);
+glm::vec3 objectColor = glm::vec3(0.4f, 0.0f, 0.0f);
+
+bool isWireframeMode = false;
+
+void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void processInput(GLFWwindow *window);
+
 /***********************/
 
 int main()
@@ -64,6 +68,7 @@ int main()
     glfwMakeContextCurrent(window);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  
     glfwSetCursorPosCallback(window, mouse_callback);  
+    glfwSetKeyCallback(window, key_callback);
     glfwSetScrollCallback(window, scroll_callback);
     /****************************************/
 
@@ -175,11 +180,18 @@ int main()
         glClearColor(0.0f, 0.f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        glPolygonMode( GL_FRONT_AND_BACK, isWireframeMode ? GL_LINE : GL_FILL );
+        float radius = 2.0f; 
+        float speed = 1.0f;  
+        lightPos.x = radius * sin(glfwGetTime() * speed);
+        lightPos.z = radius * cos(glfwGetTime() * speed);
+
         // activate shader
         cubeShader.use();
         cubeShader.setVec3("objectColor", objectColor);
         cubeShader.setVec3("lightColor", lightColor);
         cubeShader.setVec3("lightPos", lightPos);
+        cubeShader.setVec3("viewPos", cameraPos);
 
         // create transformations
         glm::mat4 view = glm::mat4(1.0f);
@@ -267,6 +279,7 @@ void processInput(GLFWwindow *window)
     {
         lightColor -= glm::vec3(0.01f);    
     }
+
 }
 
 
@@ -315,4 +328,10 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
         fov = 1.0f;
     if (fov > 45.0f)
         fov = 45.0f; 
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_TAB && action == GLFW_PRESS)
+        isWireframeMode = !isWireframeMode;
 }
