@@ -12,10 +12,10 @@
 #include "Shader.hpp"
 
 /*function/variable declarations*/
-const int SCREEN_WIDTH = 1440;
-const int SCREEN_HEIGHT = 720;
+const int SCREEN_WIDTH = 1920;
+const int SCREEN_HEIGHT = 1080;
 
-glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -28,9 +28,8 @@ float fov   =  45.0f;
 float deltaTime = 0.0f;	
 float lastFrame = 0.0f;
 
-glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-glm::vec3 lightPos = glm::vec3(1.2f, 0.0f, 2.0f);
-glm::vec3 objectColor = glm::vec3(0.4f, 0.0f, 0.0f);
+glm::vec3 lightPos = glm::vec3(2.0f, 2.0f, 2.0f);
+glm::vec3 objectColor = glm::vec3(1.0f, 0.0f, 0.0f);
 
 bool isWireframeMode = false;
 
@@ -135,10 +134,6 @@ int main()
        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
     };
 
-    std::vector<glm::vec3> cubePositions = {
-        glm::vec3(0.0f, 0.0f, 0.0f)};
-
-
     unsigned int VBO, cubeVAO;
     glGenVertexArrays(1, &cubeVAO);
     glGenBuffers(1, &VBO);
@@ -171,48 +166,63 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame; 
         // std::cout << deltaTime << std::endl;
+        lightPos.x = sin(glfwGetTime() * 2.0f);
+        lightPos.y = sin(glfwGetTime() * 0.7f);
+        lightPos.z = sin(glfwGetTime() * 1.3f);
 
         // input
         processInput(window);
 
         // render
         glEnable(GL_DEPTH_TEST);
-        glClearColor(0.0f, 0.f, 0.0f, 0.0f);
+        glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glPolygonMode( GL_FRONT_AND_BACK, isWireframeMode ? GL_LINE : GL_FILL );
-        float radius = 2.0f; 
-        float speed = 1.0f;  
-        lightPos.x = radius * sin(glfwGetTime() * speed);
-        lightPos.z = radius * cos(glfwGetTime() * speed);
 
-        // activate shader
+        glm::vec3 lightColor;
+        lightColor.x = sin(glfwGetTime() * 2.0f);
+        lightColor.y = sin(glfwGetTime() * 0.7f);
+        lightColor.z = sin(glfwGetTime() * 1.3f);
+        
+        glm::vec3 diffuseColor = lightColor   * glm::vec3(0.5f); 
+        glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); 
+        
+
+        // cube shader data
         cubeShader.use();
+        cubeShader.setVec3("material.ambient", ambientColor);
+        cubeShader.setVec3("material.diffuse", diffuseColor);
+        cubeShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+        cubeShader.setFloat("material.shininess", 32.0f);
+        cubeShader.setVec3("light.ambient",  0.2f, 0.2f, 0.2f);
+        cubeShader.setVec3("light.diffuse",  0.5f, 0.5f, 0.5f);
+        cubeShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
         cubeShader.setVec3("objectColor", objectColor);
         cubeShader.setVec3("lightColor", lightColor);
         cubeShader.setVec3("lightPos", lightPos);
         cubeShader.setVec3("viewPos", cameraPos);
 
-        // create transformations
+        // cube transformations
         glm::mat4 view = glm::mat4(1.0f);
-        
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         glm::mat4 projection = glm::mat4(1.0f);
         projection = glm::perspective(glm::radians(fov), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);  
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.3f, 0.5f));
-        
-        // pass transformation matrices to the shader
         cubeShader.setMat4("projection", projection);
         cubeShader.setMat4("view", view);
-        cubeShader.setMat4("model", model);
-        
-        // render cube
+
+        glm::vec3 cubePosition(0.0f);
         glBindVertexArray(cubeVAO);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, cubePosition);
+        cubeShader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
         
-        //render light
+        // light
         lightShader.use();
         model = glm::mat4(1.0f);
         model = glm::translate(model, lightPos);
@@ -220,6 +230,7 @@ int main()
         lightShader.setMat4("projection", projection);
         lightShader.setMat4("view", view);
         lightShader.setMat4("model", model);
+        lightShader.setVec3("lightColor", lightColor);
         glBindVertexArray(lightCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -244,7 +255,7 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 
 void processInput(GLFWwindow *window)
 {
-    const float cameraSpeed = 2.0f * deltaTime;
+    const float cameraSpeed = 12.0f * deltaTime;
  
     // close window
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -269,17 +280,6 @@ void processInput(GLFWwindow *window)
     {
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     }
-
-    // light
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-    {
-        lightColor += glm::vec3(0.01f);
-    }
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-    {
-        lightColor -= glm::vec3(0.01f);    
-    }
-
 }
 
 
