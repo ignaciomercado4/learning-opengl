@@ -1,23 +1,61 @@
 /*primer main.cpp*/
 
 #define GLM_FORCE_CTOR_INIT
+#define GLM_ENABLE_EXPERIMENTAL
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
 #include <iostream>
 #include <vector>
 #include <glm.hpp>
+#include "gtx/string_cast.hpp"
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 #include "Shader.hpp"
 
-/*function/variable declarations*/
-const int SCREEN_WIDTH = 1920;
-const int SCREEN_HEIGHT = 1080;
+struct Material {
+    glm::vec3 ambient;
+    glm::vec3 diffuse;
+    glm::vec3 specular;
+    float shininess;
+};
 
-glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f, 0.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f, 0.0f);
+Material materials[] = {
+    {{0.0215f, 0.1745f, 0.0215f}, {0.07568f, 0.61424f, 0.07568f}, {0.633f, 0.727811f, 0.633f}, 0.6f}, // emerald
+    {{0.135f, 0.2225f, 0.1575f}, {0.54f, 0.89f, 0.63f}, {0.316228f, 0.316228f, 0.316228f}, 0.1f}, // jade
+    {{0.05375f, 0.05f, 0.06625f}, {0.18275f, 0.17f, 0.22525f}, {0.332741f, 0.328634f, 0.346435f}, 0.3f}, // obsidian
+    {{0.25f, 0.20725f, 0.20725f}, {1.0f, 0.829f, 0.829f}, {0.296648f, 0.296648f, 0.296648f}, 0.088f}, // pearl
+    {{0.1745f, 0.01175f, 0.01175f}, {0.61424f, 0.04136f, 0.04136f}, {0.727811f, 0.626959f, 0.626959f}, 0.6f}, // ruby
+    {{0.1f, 0.18725f, 0.1745f}, {0.396f, 0.74151f, 0.69102f}, {0.297254f, 0.30829f, 0.306678f}, 0.1f}, // turquoise
+    {{0.329412f, 0.223529f, 0.027451f}, {0.780392f, 0.568627f, 0.113725f}, {0.992157f, 0.941176f, 0.807843f}, 0.21794872f}, // brass
+    {{0.2125f, 0.1275f, 0.054f}, {0.714f, 0.4284f, 0.18144f}, {0.393548f, 0.271906f, 0.166721f}, 0.2f}, // bronze
+    {{0.25f, 0.25f, 0.25f}, {0.4f, 0.4f, 0.4f}, {0.774597f, 0.774597f, 0.774597f}, 0.6f}, // chrome
+    {{0.19125f, 0.0735f, 0.0225f}, {0.7038f, 0.27048f, 0.0828f}, {0.256777f, 0.137622f, 0.086014f}, 0.1f}, // copper
+    {{0.24725f, 0.1995f, 0.0745f}, {0.75164f, 0.60648f, 0.22648f}, {0.628281f, 0.555802f, 0.366065f}, 0.4f}, // gold
+    {{0.19225f, 0.19225f, 0.19225f}, {0.50754f, 0.50754f, 0.50754f}, {0.508273f, 0.508273f, 0.508273f}, 0.4f}, // silver
+    {{0.0f, 0.0f, 0.0f}, {0.01f, 0.01f, 0.01f}, {0.5f, 0.5f, 0.5f}, 0.25f}, // black plastic
+    {{0.0f, 0.1f, 0.06f}, {0.0f, 0.50980392f, 0.50980392f}, {0.50196078f, 0.50196078f, 0.50196078f}, 0.25f}, // cyan plastic
+    {{0.0f, 0.0f, 0.0f}, {0.1f, 0.35f, 0.1f}, {0.45f, 0.55f, 0.45f}, 0.25f}, // green plastic
+    {{0.0f, 0.0f, 0.0f}, {0.5f, 0.0f, 0.0f}, {0.7f, 0.6f, 0.6f}, 0.25f}, // red plastic
+    {{0.0f, 0.0f, 0.0f}, {0.55f, 0.55f, 0.55f}, {0.7f, 0.7f, 0.7f}, 0.25f}, // white plastic
+    {{0.0f, 0.0f, 0.0f}, {0.5f, 0.5f, 0.0f}, {0.6f, 0.6f, 0.5f}, 0.25f}, // yellow plastic
+    {{0.02f, 0.02f, 0.02f}, {0.01f, 0.01f, 0.01f}, {0.4f, 0.4f, 0.4f}, 0.078125f}, // black rubber
+    {{0.0f, 0.05f, 0.05f}, {0.4f, 0.5f, 0.5f}, {0.04f, 0.7f, 0.7f}, 0.078125f}, // cyan rubber
+    {{0.0f, 0.05f, 0.0f}, {0.4f, 0.5f, 0.4f}, {0.04f, 0.7f, 0.04f}, 0.078125f}, // green rubber
+    {{0.05f, 0.0f, 0.0f}, {0.5f, 0.4f, 0.4f}, {0.7f, 0.04f, 0.04f}, 0.078125f}, // red rubber
+    {{0.05f, 0.05f, 0.05f}, {0.5f, 0.5f, 0.5f}, {0.7f, 0.7f, 0.7f}, 0.078125f}, // white rubber
+    {{0.05f, 0.05f, 0.0f}, {0.5f, 0.5f, 0.4f}, {0.7f, 0.7f, 0.04f}, 0.078125f} // yellow rubber
+};
+
+
+/*function/variable declarations*/
+const int SCREEN_WIDTH = 1080;
+const int SCREEN_HEIGHT = 900;
+
+glm::vec3 cameraPos(0.0f, 0.0f, 2.0f);
+glm::vec3 cameraFront(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp(0.0f, 1.0f, 0.0f);
 
 bool firstMouse = true;
 float yaw   = -90.0f;	
@@ -28,8 +66,8 @@ float fov   =  45.0f;
 float deltaTime = 0.0f;	
 float lastFrame = 0.0f;
 
-glm::vec3 lightPos = glm::vec3(2.0f, 2.0f, 2.0f);
-glm::vec3 objectColor = glm::vec3(1.0f, 0.0f, 0.0f);
+glm::vec3 lightPos(0.0f, 0.0f, 1.75f);
+glm::vec3 objectColor(1.0f, 0.0f, 0.0f);
 
 bool isWireframeMode = false;
 
@@ -51,8 +89,8 @@ int main()
         return 1;
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow *window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "LearnOpenGL", NULL, NULL);
@@ -165,66 +203,61 @@ int main()
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame; 
-        // std::cout << deltaTime << std::endl;
-        lightPos.x = sin(glfwGetTime() * 2.0f);
-        lightPos.y = sin(glfwGetTime() * 0.7f);
-        lightPos.z = sin(glfwGetTime() * 1.3f);
-
         // input
         processInput(window);
-
+        
         // render
         glEnable(GL_DEPTH_TEST);
         glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        glPolygonMode( GL_FRONT_AND_BACK, isWireframeMode ? GL_LINE : GL_FILL );
-
-        glm::vec3 lightColor;
-        lightColor.x = sin(glfwGetTime() * 2.0f);
-        lightColor.y = sin(glfwGetTime() * 0.7f);
-        lightColor.z = sin(glfwGetTime() * 1.3f);
         
+        glPolygonMode( GL_FRONT_AND_BACK, isWireframeMode ? GL_LINE : GL_FILL );
+        
+        glm::vec3 lightColor(1.0f);
         glm::vec3 diffuseColor = lightColor   * glm::vec3(0.5f); 
         glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); 
         
-
+        // float radius = 3.5f;
+        // float angle = glfwGetTime(); 
+        // lightPos.x = cos(angle) * radius;
+        // lightPos.y = 0.0f;
+        // lightPos.z = sin(angle) * radius;
+        
         // cube shader data
         cubeShader.use();
-        cubeShader.setVec3("material.ambient", ambientColor);
-        cubeShader.setVec3("material.diffuse", diffuseColor);
-        cubeShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-        cubeShader.setFloat("material.shininess", 32.0f);
         cubeShader.setVec3("light.ambient",  0.2f, 0.2f, 0.2f);
         cubeShader.setVec3("light.diffuse",  0.5f, 0.5f, 0.5f);
         cubeShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-        cubeShader.setVec3("objectColor", objectColor);
         cubeShader.setVec3("lightColor", lightColor);
         cubeShader.setVec3("lightPos", lightPos);
         cubeShader.setVec3("viewPos", cameraPos);
-
+        
         // cube transformations
         glm::mat4 view = glm::mat4(1.0f);
         view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         glm::mat4 projection = glm::mat4(1.0f);
         projection = glm::perspective(glm::radians(fov), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);  
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f, 0.3f, 0.5f));
         cubeShader.setMat4("projection", projection);
         cubeShader.setMat4("view", view);
+        
+        for (int i = 0; i < sizeof(materials) / sizeof(materials[0]); i++)
+        {
+            cubeShader.setVec3("material.ambient",      materials[i].ambient);
+            cubeShader.setVec3("material.diffuse",      materials[i].diffuse);
+            cubeShader.setVec3("material.specular",     materials[i].specular);
+            cubeShader.setFloat("material.shininess",   materials[i].shininess * 128);
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, glm::vec3(1.0f * (float)i, 0.0f, 0.0f));
+            cubeShader.setMat4("model", model);
 
-        glm::vec3 cubePosition(0.0f);
-        glBindVertexArray(cubeVAO);
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, cubePosition);
-        cubeShader.setMat4("model", model);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
+            glBindVertexArray(cubeVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+        
         
         // light
         lightShader.use();
-        model = glm::mat4(1.0f);
+        glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, lightPos);
         model = glm::scale(model, glm::vec3(0.2f));
         lightShader.setMat4("projection", projection);
@@ -233,17 +266,17 @@ int main()
         lightShader.setVec3("lightColor", lightColor);
         glBindVertexArray(lightCubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
-
+    
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
+    
     glDeleteVertexArrays(1, &cubeVAO);
     glDeleteBuffers(1, &VBO);
-
+    
     glfwDestroyWindow(window);
     glfwTerminate();
-
+    
     return 0;
 }
 
@@ -279,6 +312,17 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
         cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    }
+
+    // light movemente
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    {
+        lightPos.x -= 0.1f;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    {
+        lightPos.x += 0.1f; 
     }
 }
 
@@ -332,6 +376,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if (key == GLFW_KEY_TAB && action == GLFW_PRESS)
+    // wireframe
+    if (key == GLFW_KEY_TAB && action == GLFW_PRESS) {
         isWireframeMode = !isWireframeMode;
+    }
 }
