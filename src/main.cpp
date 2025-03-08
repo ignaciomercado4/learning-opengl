@@ -1,5 +1,3 @@
-/*primer main.cpp*/
-
 #define GLM_FORCE_CTOR_INIT
 #define GLM_ENABLE_EXPERIMENTAL
 
@@ -50,8 +48,8 @@ Material materials[] = {
 
 
 /*function/variable declarations*/
-const int SCREEN_WIDTH = 1080;
-const int SCREEN_HEIGHT = 900;
+const int SCREEN_WIDTH = 1920;
+const int SCREEN_HEIGHT = 1080;
 
 glm::vec3 cameraPos(0.0f, 0.0f, 2.0f);
 glm::vec3 cameraFront(0.0f, 0.0f, -1.0f);
@@ -199,15 +197,16 @@ int main()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    // texture
+    // textures
     unsigned int diffuseMap = loadTexture("src/resources/container2.png"); 
     cubeShader.use();
     cubeShader.setInt("material.diffuse", 0);
-
-
+    
+    unsigned int emissionMap = loadTexture("src/resources/matrix.jpg");
+    cubeShader.setInt("material.emission", 1);
+    
     unsigned int specularMap = loadTexture("src/resources/container2_specular.png"); 
-    cubeShader.use();
-    cubeShader.setInt("material.specular", 1);
+    cubeShader.setInt("material.specular", 2);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -243,9 +242,10 @@ int main()
         cubeShader.setVec3("light.position", lightPos);
         cubeShader.setVec3("viewPos", cameraPos);
 
-        cubeShader.setInt("material.diffuse", 0); // Asegúrate de que esto esté configurado
+        cubeShader.setInt("material.diffuse", 0); 
         cubeShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
         cubeShader.setFloat("material.shininess", 64.0f);
+        cubeShader.setFloat("time", glfwGetTime());
 
         // cube transformations
         glm::mat4 view = glm::mat4(1.0f);
@@ -260,6 +260,8 @@ int main()
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
         glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, emissionMap);
+        glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, specularMap);
 
         // render the cube
