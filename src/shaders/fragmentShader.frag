@@ -46,7 +46,7 @@ void main()
     if (texture(material.specular, TexCoords).r == 0.0f)
     {
         emission =  texture(material.emission, TexCoords).rgb;  
-        emission = texture(material.emission, TexCoords + vec2(0.0,time)).rgb;   /*moving */
+        emission = emission * (sin(time) * 0.5 + 0.5) * 2.0;  
       
     }
     

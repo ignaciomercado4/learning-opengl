@@ -202,7 +202,7 @@ int main()
     cubeShader.use();
     cubeShader.setInt("material.diffuse", 0);
     
-    unsigned int emissionMap = loadTexture("src/resources/matrix.jpg");
+    unsigned int emissionMap = loadTexture("src/resources/container2_emission.png");
     cubeShader.setInt("material.emission", 1);
     
     unsigned int specularMap = loadTexture("src/resources/container2_specular.png"); 
